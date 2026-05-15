@@ -9,9 +9,9 @@ class DataTreatment:
     def clean_data(self):
         ## Implement data cleaning logic here
         
-        # 1. We'll drop the Name column as it is not useful for our analysis
+        # 1. We'll drop the PassengerId and Name columns as they are not useful for our analysis
         #    We'll also drop the Cabin column as it has too many missing values
-        self.data = self.data.drop(columns=['Name', 'Cabin'], errors='ignore')
+        self.data = self.data.drop(columns=['PassengerId', 'Name', 'Cabin'], errors='ignore')
 
         # 2. We'll replace the Nans with the most frequent value in the column
         self.data = self.data.fillna(self.data.mode().iloc[0])
@@ -33,14 +33,20 @@ class DataTreatment:
         # Create ticket score, which is the probability of survival for each ticket prefix
         if('Survived' in transf_data.columns):
             self.ticket_survival_rate = transf_data.groupby('Ticket_prefix')['Survived'].mean()
-        if(self.ticket_survival_rate == None):
+        if(self.ticket_survival_rate is None):
             raise ValueError("Set the ticket survival rate in the test set to the one from the training set.")
         
         transf_data['Ticket_score'] = transf_data['Ticket_prefix'].map(self.ticket_survival_rate)
-        transf_data.drop(columns=['Ticket_prefix'], errors='ignore')
+        transf_data = transf_data.drop(columns=['Ticket', 'Ticket_prefix'], errors='ignore')
 
         # 3. Standardize the data
+        survived_col = transf_data['Survived'] if 'Survived' in transf_data.columns else None
+        transf_data = transf_data.drop(columns=['Survived'], errors='ignore')
         transf_data = (transf_data - transf_data.mean()) / transf_data.std()
+        
+        if(survived_col is not None):
+            transf_data['Survived'] = survived_col
+        
         self.data = transf_data
 
 
@@ -50,11 +56,13 @@ class DataTreatment:
         return self.data
     
     
-    """
-    import pandas as pd
-    train = pd.read_csv('../data/train.csv')
-    print(train.head())
-    data_treatment = DataTreatment(train)
-    processed_data = data_treatment.get_processed_data()
-    print(processed_data.head())
-    """
+
+import pandas as pd
+train = pd.read_csv('../data/train.csv')
+#print(train.head())
+data_treatment = DataTreatment(train)
+processed_data = data_treatment.get_processed_data()
+print(processed_data.head())
+#print(data_treatment.ticket_survival_rate)
+
+    
