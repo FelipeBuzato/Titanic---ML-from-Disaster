@@ -37,6 +37,7 @@ class DataTreatment:
             raise ValueError("Set the ticket survival rate in the test set to the one from the training set.")
         
         transf_data['Ticket_score'] = transf_data['Ticket_prefix'].map(self.ticket_survival_rate)
+        transf_data['Ticket_score'] = transf_data['Ticket_score'].fillna(transf_data['Ticket_score'].mode().iloc[0])
         transf_data = transf_data.drop(columns=['Ticket', 'Ticket_prefix'], errors='ignore')
 
         # 3. Standardize the data
@@ -56,13 +57,13 @@ class DataTreatment:
         return self.data
     
     
-
+"""
 import pandas as pd
 train = pd.read_csv('../data/train.csv')
 #print(train.head())
 data_treatment = DataTreatment(train)
 processed_data = data_treatment.get_processed_data()
-print(processed_data.head())
+#print(processed_data.head())
 #print(data_treatment.ticket_survival_rate)
-
+"""
     
