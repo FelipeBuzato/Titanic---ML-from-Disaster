@@ -1,5 +1,6 @@
 from sklearn.model_selection import KFold
 from KNN import KNN
+from LogisticRegression import LogisticRegression
 
 class CrossValidation:
     def __init__(self, data, model):
@@ -10,6 +11,8 @@ class CrossValidation:
     def get_model(self, train_data):
         if(self.model == 'KNN'):
             return KNN(train_data)
+        elif(self.model == 'Logistic Regression'):
+            return LogisticRegression(train_data)
         else:
             raise ValueError(f"Model {self.model} not supported for cross-validation.")
         
@@ -20,7 +23,7 @@ class CrossValidation:
         # 10-Fold Cross-Validation
         # Split the data into 10 folds and evaluate the model on each fold
         kf = KFold(n_splits=10, shuffle=True, random_state=42)
-        scores = {hyper_param: [] for hyper_param in hyper_params}
+        scores = {params: [] for params in hyper_params}
 
         for train_idx, val_idx in kf.split(X):
             train = X.iloc[train_idx]
@@ -32,10 +35,10 @@ class CrossValidation:
             model = self.get_model(train)
             model.process_test_data(test_x)
 
-            for k in hyper_params:
-                test_y_pred = model.predict(k)
+            for params in hyper_params:
+                test_y_pred = model.predict(params)
                 score = (test_y_pred['Survived'] == test_y).mean()
-                scores[k].append(score)
+                scores[params].append(score)
             
         scores = {k: sum(v)/len(v) for k, v in scores.items()}
         return scores

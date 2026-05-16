@@ -1,11 +1,11 @@
+from sklearn.linear_model import LogisticRegression as SktLogisticRegression
 import pandas as pd
 from DataTreatment import DataTreatment
-from sklearn.neighbors import KNeighborsClassifier
 
-class KNN:
+class LogisticRegression:
     def __init__(self, data):
         if('Survived' not in data.columns):
-            raise ValueError("The 'Survived' column is required in the data for KNN.")
+            raise ValueError("The 'Survived' column is required in the data for Logistic Regression.")
         
         self.train_data_processor = DataTreatment(data)
         self.test_data_processor = None
@@ -22,31 +22,21 @@ class KNN:
         self.test = self.test_data_processor.get_processed_data()
         self.x_test = self.test.values
 
+    
+    def predict(self, params=None):
+        if(params is None):
+            l1_ratio = 0 # L2 regularization
+            c = 1.0
+        else:
+            l1_ratio = params[0]
+            c = params[1]
 
-    def predict(self, params):
-        # Prediction
-        k = params[0]
-        knn = KNeighborsClassifier(n_neighbors=k)
-        knn.fit(self.x_train, self.y_train)
-        predictions = knn.predict(self.x_test)
-
-        # Submission format
+        log_reg = SktLogisticRegression(solver='saga', max_iter=1000, l1_ratio=l1_ratio, C=c)
+        log_reg.fit(self.x_train, self.y_train)
+        predictions = log_reg.predict(self.x_test)
+    
+         # Submission format
         passenger_ids = self.test_data_processor.original_data['PassengerId']
         predictions = pd.DataFrame({'PassengerId': passenger_ids, 'Survived': predictions})
 
         return predictions
-    
-
-"""
-import pandas as pd
-train = pd.read_csv('../data/train.csv')
-test = pd.read_csv('../data/test.csv')
-#print(train.head())
-#data_treatment = DataTreatment(train)
-#processed_data = data_treatment.get_processed_data()
-#print(processed_data.head())
-knn = KNN(train)
-knn.process_test_data(test)
-predictions = knn.predict(params=[5])
-print(predictions)
-"""
